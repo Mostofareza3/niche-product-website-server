@@ -42,6 +42,12 @@ client.connect(err => {
     const orderCollection = client.db("bikeStore").collection("myOrders");
     
 
+    //add new product
+    app.post('/addNewProduct',async(req, res)=>{
+        const data = req.body;
+        const result = await productCollection.insertOne(data);
+        console.log(result)
+    })
     //get all products
     app.get('/products', async(req,res)=>{
         const result = await productCollection.find({}).toArray();
