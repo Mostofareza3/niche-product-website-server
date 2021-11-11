@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 client.connect(err => {
     const productCollection = client.db("bikeStore").collection("products");
-    const userCollection = client.db("bikeStore").collection("users");
+    const usersCollection = client.db("bikeStore").collection("users");
     const reviewCollection = client.db("bikeStore").collection("products");
     const orderCollection = client.db("bikeStore").collection("myOrders");
     
@@ -55,7 +55,6 @@ client.connect(err => {
     });
     //delete order item
     app.delete('/deleteOrder/:id',async (req,res)=>{
-        console.log(req.query,req.params.id)
         const id = req.params.id;
         const email = req.query.email;
         const result = await orderCollection.deleteOne({
@@ -63,6 +62,22 @@ client.connect(err => {
         res.json(result)
     
     })
+    // save user
+    app.post('/users', async (req, res) => {
+        const user = req.body;
+        const result = await usersCollection.insertOne(user);
+        console.log(result);
+        res.json(result);
+    });
+
+    app.put('/users', async (req, res) => {
+        const user = req.body;
+        const filter = { email: user.email };
+        const options = { upsert: true };
+        const updateDoc = { $set: user };
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
+        res.json(result);
+    });
 
     // client.close();
   });
