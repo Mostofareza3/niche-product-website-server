@@ -18,6 +18,23 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+async function verifyToken(req, res, next) {
+    if (req.headers?.authorization?.startsWith('Bearer ')) {
+        const token = req.headers.authorization.split(' ')[1];
+
+        try {
+            const decodedUser = await admin.auth().verifyIdToken(token);
+            req.decodedEmail = decodedUser.email;
+        }
+        catch {
+
+        }
+
+    }
+    next();
+}
+
+
 client.connect(err => {
     const productCollection = client.db("bikeStore").collection("products");
     const usersCollection = client.db("bikeStore").collection("users");
@@ -45,14 +62,25 @@ client.connect(err => {
         res.json(result)
     })
 
-    //get all orders
-    app.get('/myOrders',async(req,res)=>{
-
+   
+    app.get('/myOrders', async (req, res) => {
         const email = req.query.email;
-        const query = {email : email}
-        const result = await orderCollection.find(query).toArray();
-        res.json(result)
+        // const date = req.query.date;
+
+        const query = { email: email}
+
+        const cursor = orderCollection.find(query);
+        const result = await cursor.toArray();
+        res.json(result);
     });
+
+    //delete product
+    app.delete('/products/delete/:id', async (req,res)=>{
+        const id = req.params.id;
+        const result = await productCollection.deleteOne({_id : ObjectId(id)});
+        res.send(result)
+    })
+    
     //delete order item
     app.delete('/deleteOrder/:id',async (req,res)=>{
         const id = req.params.id;
@@ -78,6 +106,29 @@ client.connect(err => {
         const result = await usersCollection.updateOne(filter, updateDoc, options);
         res.json(result);
     });
+
+    //make admin
+    app.put('/users/admin', async (req, res) => {
+        const user = req.body;
+        const filter = { email: user.email };
+
+        const updateDoc = { $set: { role: 'admin' } };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.json(result);
+
+    });
+
+    app.get('/users/:email', async (req, res) => {
+        const email = req.params.email;
+        const query = { email: email };
+        const user = await usersCollection.findOne(query);
+        let isAdmin = false;
+        if (user?.role === 'admin') {
+            isAdmin = true;
+        }
+        res.json({ admin: isAdmin });
+    })
+
 
     // client.close();
   });
