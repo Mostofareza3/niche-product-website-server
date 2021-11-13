@@ -38,8 +38,8 @@ async function verifyToken(req, res, next) {
 client.connect(err => {
     const productCollection = client.db("bikeStore").collection("products");
     const usersCollection = client.db("bikeStore").collection("users");
-    const reviewCollection = client.db("bikeStore").collection("products");
     const orderCollection = client.db("bikeStore").collection("myOrders");
+    const reviewCollection = client.db("bikeStore").collection("reviews");
     
 
     //add new product
@@ -47,7 +47,7 @@ client.connect(err => {
         const data = req.body;
         const result = await productCollection.insertOne(data);
         console.log(result)
-    })
+    });
     //get all products
     app.get('/products', async(req,res)=>{
         const result = await productCollection.find({}).toArray();
@@ -59,14 +59,14 @@ client.connect(err => {
         const id = req.params.id;
         const result = await productCollection.findOne({_id : ObjectId(id)});
         res.send(result)
-    })
+    });
 
     //add a product by user
     app.post('/addOrder',async(req, res)=>{
         const product = req.body;
         const result = await orderCollection.insertOne(product)
         res.json(result)
-    })
+    });
 
    
     app.get('/myOrders', async (req, res) => {
@@ -85,7 +85,7 @@ client.connect(err => {
         const id = req.params.id;
         const result = await productCollection.deleteOne({_id : ObjectId(id)});
         res.send(result)
-    })
+    });
     
     //delete order item
     app.delete('/deleteOrder/:id',async (req,res)=>{
@@ -95,7 +95,7 @@ client.connect(err => {
             email : email  });
         res.json(result)
     
-    })
+    });
     // save user
     app.post('/users', async (req, res) => {
         const user = req.body;
@@ -133,8 +133,19 @@ client.connect(err => {
             isAdmin = true;
         }
         res.json({ admin: isAdmin });
-    })
+    });
 
+    //add and get reviews
+    app.post('/addReview',async (req,res)=>{
+        const review = req.body;
+        const result = await reviewCollection.insertOne(review);
+        res.send(result)
+    });
+
+    app.get('/allReview',async (req,res)=>{
+        const result = await reviewCollection.find({}).toArray();
+        res.json(result)
+    })
 
     // client.close();
   });
