@@ -46,7 +46,7 @@ client.connect(err => {
     app.post('/addNewProduct',async(req, res)=>{
         const data = req.body;
         const result = await productCollection.insertOne(data);
-        console.log(result)
+        res.json(result)
     });
     //get all products
     app.get('/products', async(req,res)=>{
