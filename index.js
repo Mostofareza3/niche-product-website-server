@@ -71,13 +71,30 @@ client.connect(err => {
    
     app.get('/myOrders', async (req, res) => {
         const email = req.query.email;
-        // const date = req.query.date;
-
         const query = { email: email}
 
         const cursor = orderCollection.find(query);
         const result = await cursor.toArray();
         res.json(result);
+    });
+
+    app.get('/allOrders', async (req, res) => {
+    
+        const result =await orderCollection.find({}).toArray();
+        res.json(result);
+    });
+    app.put('/allOrders/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = {_id : ObjectId(id)}
+        // console.log(filter);
+        const options = { upsert: true };
+        const updateDoc = {
+            $set: {
+              status: "shipped"
+            },
+          };
+          const result = await orderCollection.updateOne(filter, updateDoc, options);
+         res.send(result)
     });
 
     //delete product
@@ -95,6 +112,13 @@ client.connect(err => {
             email : email  });
         res.json(result)
     
+    });
+    app.delete('/clearOrder/:id',async(req,res)=>{
+        const id = req.params.id;
+        const result = await orderCollection.deleteOne({
+            _id : ObjectId(id)
+        })
+        res.json(result)
     });
     // save user
     app.post('/users', async (req, res) => {
